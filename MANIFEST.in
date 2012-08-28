@@ -1,0 +1,2 @@
+include README.md levelup.py
+recursive-include LevelUp/lib *
