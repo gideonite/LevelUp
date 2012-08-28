@@ -32,19 +32,11 @@ Options:
                                 "--probe-file SNP-probe-file --sample-name=SNP"
                                 probe-file and its name form a pair
   --cbs-output-file=OUTPUT      Appends the output of CBS to a file named
-                                OUTPUT.  If ommited a new file will be created
-                                called: ???????????
+                                OUTPUT.  [default: cbs.out]
   --gistic-options              These commandline options are passed directly
                                 to the gistic program.  If omitted, gistic will
                                 not be run.
 """
-# todo: remove question marks above
-
-# todo: remind the user (hints section?) to set LD_LIBRARY_LIB to whatever they
-# want before
-# running gistic.  This sure gets annoying! Just set it to
-# setenv LD_LIBRARY_LIB ''
-
 
 import sys, os
 import rpy2.robjects as robjects
@@ -139,10 +131,10 @@ class levelup:
     # returns an R object of segmented data
     # name_of_sample eg. secondary_GBM_6, primary_GBM_30, etc.
 
-    # todo : make the output silent.  you might be able to do this by giving R a variable to store the results in and then returning that.
-        #   something of the form   Rreturn robject.r('cbs_output')
-
-        data_type = "logratio"          # todo: what does this mean?
+    # todo : make the output silent.
+    # todo: make data_type an option for the user?
+    # Question : does CBS always output logratio?
+        data_type = "logratio"          
         # convert data_type to R
         data_type = robjects.r('data.type="' + data_type + '"')
 
@@ -184,7 +176,7 @@ class levelup:
         verbose = robjects.r('verbose=1')
 
         segmented = segment(smoothed)
-        #segmented = segment(smoothed, verbose)     # todo: why doesn't this work???
+        #segmented = segment(smoothed, verbose)     # todo: why doesn't this work?
 
         return segmented
 
@@ -220,8 +212,9 @@ class levelup:
         probe_files = args['--probe-file']
         sample_name = args['--sample-name']
 
-        if not cbs_output_filename:
-            cbs_output_filename = 'cbs.out'
+        # should be set by docopt
+        #if not cbs_output_filename:
+        #    cbs_output_filename = 'cbs.out'
 
         if sample_name != None:
             probes_and_names = zip(probe_files, sample_name)
@@ -252,4 +245,6 @@ class levelup:
 
         clean_up_cbs_output(cbs_output_filename)
 
-    #    os.system(gistic_exec + gistic_options + "-seg " + cbs_output_filename)
+        #./gp_gistic2_from_seg -b $basedir -seg $segfile -mk $markersfile
+        #-refgene $refgenefile -alf $alf -cnv $cnvfile -genegistic 1 -smallmem 1
+        #-broad 1 -brlen 0.5 -conf 0.90
