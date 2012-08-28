@@ -59,9 +59,6 @@ from docopt import docopt
     # todo : what is the meaning of this file?  Isn't it redundant to the probesFile?
     # Boris knows
 
-    # provide the following link to updated versions of GISTIC:
-    # http://www.broadinstitute.org/cgi-bin/cancer/publications/pub_paper.cgi?mode=view&paper_id=162
-
 class levelup:
 
     def marker_position_hash(self, markerPos_files):
@@ -136,7 +133,7 @@ class levelup:
     # todo : make the output silent.
     # todo: make data_type an option for the user?
     # Question : does CBS always output logratio?
-        data_type = "logratio"          
+        data_type = "logratio"
         # convert data_type to R
         data_type = robjects.r('data.type="' + data_type + '"')
 
