@@ -65,185 +65,191 @@ from docopt import docopt
     # todo : what is the meaning of this file?  Isn't it redundant to the probesFile?
     # Boris knows
 
-def marker_position_hash(markerPos_files):
-# takes a list of marker files (mappings of probe -> chr locus)
-# and turns it into a hash table in memory { mark : [chr, locus] }
-    print "...loading marker files..."
+    # provide the following link to updated versions of GISTIC:
+    # http://www.broadinstitute.org/cgi-bin/cancer/publications/pub_paper.cgi?mode=view&paper_id=162
 
-    hash = {}
-    for file in markerPos_files:
+class levelup:
 
-        # open the file and read in lines from it
-        file = open(file)
-        f = file.readlines()
+    def marker_position_hash(self, markerPos_files):
+    # takes a list of marker files (mappings of probe -> chr locus)
+    # and turns it into a hash table in memory { mark : [chr, locus] }
+        print "...loading marker files..."
 
-        # parse out chr, pos, and make a hash to them
-        for line in f:
-            line = line.split("\t")
-            mark = str(line[0]).strip()
-            chr = line[1]
-            pos = line[2].replace('\n','')
-            hash[mark] = [chr, pos]
+        hash = {}
+        for file in markerPos_files:
 
-    file.close()
+            # open the file and read in lines from it
+            file = open(file)
+            f = file.readlines()
 
-    print "done!"
-    return hash
+            # parse out chr, pos, and make a hash to them
+            for line in f:
+                line = line.split("\t")
+                mark = str(line[0]).strip()
+                chr = line[1]
+                pos = line[2].replace('\n','')
+                hash[mark] = [chr, pos]
 
-def probes_to_chrLocus(probesFile_name, hash):
-# go through the signal data,
-# match markers to chr loci,
-# match with the corresponding signal level,
-# and return a list of [signal, chr#, position]
+        file.close()
 
-    probesFile = open(probesFile_name)
+        print "done!"
+        return hash
 
-    f = probesFile.readlines()
+    def probes_to_chrLocus(self, probesFile_name, hash):
+    # go through the signal data,
+    # match markers to chr loci,
+    # match with the corresponding signal level,
+    # and return a list of [signal, chr#, position]
 
-    list = []
+        probesFile = open(probesFile_name)
 
-    if (f[1].find('Signal') == -1):
-        print f[0]
-        print f[1]
-        print f[2]
-        print "It appears that your data file does not have a Signal Column"
+        f = probesFile.readlines()
 
-    # *** ignore the first two lines of the probe file ***
-    # they are usually column names and whatnot
-    for line in f[2:]:
-        line = line.split('\t')
+        list = []
 
-        mark = line[0]
-        signal = line[1].replace('\n', '')
+        if (f[1].find('Signal') == -1):
+            print f[0]
+            print f[1]
+            print f[2]
+            print "It appears that your data file does not have a Signal Column"
 
-        try:
-            map = hash[mark]
-        except KeyError:
-            print "The following probe appears to be unmapped in the marker files: <" + mark + ">"
+        # *** ignore the first two lines of the probe file ***
+        # they are usually column names and whatnot
+        for line in f[2:]:
+            line = line.split('\t')
 
-        map.insert(0, signal)
-        list.append(map)
+            mark = line[0]
+            signal = line[1].replace('\n', '')
 
-    probesFile.close()
+            try:
+                map = hash[mark]
+            except KeyError:
+                print "The following probe appears to be unmapped in the marker files: <" + mark + ">"
 
-    return list
+            map.insert(0, signal)
+            list.append(map)
 
+        probesFile.close()
 
-def CBS(list, name_of_sample):
-# run the CBS algorithm on a *python list* of [signal, chr#, position]
-# returns an R object of segmented data
-# name_of_sample eg. secondary_GBM_6, primary_GBM_30, etc.
-
-# todo : make the output silent.  you might be able to do this by giving R a variable to store the results in and then returning that.
-    #   something of the form   Rreturn robject.r('cbs_output')
-
-    data_type = "logratio"          # todo: what does this mean?
-    # convert data_type to R
-    data_type = robjects.r('data.type="' + data_type + '"')
-
-    id = name_of_sample
-    # convert id to R
-    id = robjects.r('sampleid="' + id + '"')
-
-    # create a CNA object (signal, chr, pos, data.type, sampleid)
-    signal = []
-    chr = []
-    pos = []
-    for locus in list:
-        signal.append(locus[0])
-        chr.append(locus[1])
-        pos.append(locus[2])
-
-    if (len(signal) != len(chr) or len(chr) != len(pos) or len(signal) != len(pos)):
-        print "there has to be the same number of signals, chromosomes, and positions"
-        sys.exit(-1)
-
-    # convert to R
-    signal = robjects.FloatVector(signal)
-    chr = robjects.StrVector(chr)       # StrVector because of 'X' and 'Y' chromosomes
-    pos = robjects.IntVector(pos)
-
-    # import DNAcopy
-    DNAcopy = importr("DNAcopy")
-
-    # create CNA object
-    CNA = DNAcopy.CNA(signal, chr, pos, data_type, id)
-
-    # smooth
-    smooth = robjects.r['smooth.CNA']
-    smoothed = smooth(CNA)
-
-    # segment
-    segment = robjects.r['segment']
-    verbose = robjects.r('verbose=1')
-
-    segmented = segment(smoothed)
-    #segmented = segment(smoothed, verbose)     # todo: why doesn't this work???
-
-    return segmented
-
-def write_to_file(R_obj, filename):
-# takes an R object and writes it to a file
-# e.g. takes the output of CBS and writes it to a file for GISTIC to run
-
-   R_obj = robjects.r('print')(R_obj)
-   R_obj = robjects.r('write.table')(R_obj, filename, sep='\t', append='TRUE')
-   # tab delimited
-
-def clean_up_cbs_output(filename):
-    tmp_file = filename + ".tmp"
-
-    cmd = "sed \'s/\"//g\' " + filename             # replace all " with ''
-    cmd += "| cut -f 2- "                           # delete first column of row #s
-#    cmd += "| sed \'s/ /     /g\' | sed \'1d\'"    # make tab-delimited
-    cmd += ">>" + tmp_file
-
-    os.system(cmd)
-    os.system('mv ' + tmp_file + ' ' + filename)
+        return list
 
 
-if __name__ == "__main__":
+    def CBS(self, list, name_of_sample):
+    # run the CBS algorithm on a *python list* of [signal, chr#, position]
+    # returns an R object of segmented data
+    # name_of_sample eg. secondary_GBM_6, primary_GBM_30, etc.
 
-    # use docopt to parse our args
-    args = docopt(__doc__)
-    print args
+    # todo : make the output silent.  you might be able to do this by giving R a variable to store the results in and then returning that.
+        #   something of the form   Rreturn robject.r('cbs_output')
 
-    # get out the args and deal with them!
-    cbs_output_filename = args['--cbs-output-file']
-    markerPos_files = args['--marker-file']
-    probe_files = args['--probe-file']
-    sample_name = args['--sample-name']
+        data_type = "logratio"          # todo: what does this mean?
+        # convert data_type to R
+        data_type = robjects.r('data.type="' + data_type + '"')
 
-    if not cbs_output_filename:
-        cbs_output_filename = 'cbs.out'
+        id = name_of_sample
+        # convert id to R
+        id = robjects.r('sampleid="' + id + '"')
 
-    if sample_name != None:
-        probes_and_names = zip(probe_files, sample_name)
-        probe_files = probes_and_names + probe_files[len(probes_and_names):]
+        # create a CNA object (signal, chr, pos, data.type, sampleid)
+        signal = []
+        chr = []
+        pos = []
+        for locus in list:
+            signal.append(locus[0])
+            chr.append(locus[1])
+            pos.append(locus[2])
 
-    print markerPos_files
-    hash = marker_position_hash(markerPos_files)
+        if (len(signal) != len(chr) or len(chr) != len(pos) or len(signal) != len(pos)):
+            print '''there has to be the same number of signals, chromosomes, and
+            positions'''
+            sys.exit(-1)
 
-    for probe_file in probe_files:
-    # this is a concatenation of proble_file_name their corresponding
-    # sample_name pairs with a list of probe_file_names.
-    # [(probe_file_name, sample_name), probe_file_names]
-        if len(probe_file) == 2:
-            filename = probe_file[0]
-            sample_name = probe_file[1]
-            print probe_file
-        elif type(probe_file) == 'str' and len(probe_file) > 2:
-            raise IndexError('''more than two things got zipped together with a
-            probe file and its sample name''')
-        else:
-            filename = probe_file
-            sample_name = probe_file
-            # todo : some regexs or module to get a proper name
+        # convert to R
+        signal = robjects.FloatVector(signal)
+        chr = robjects.StrVector(chr)       # StrVector because of 'X' and 'Y' chromosomes
+        pos = robjects.IntVector(pos)
 
-        cbs_input = probes_to_chrLocus(filename, hash)
-        cbs = CBS(cbs_input, sample_name)
-        write_to_file(cbs, cbs_output_filename)
+        # import DNAcopy
+        DNAcopy = importr("DNAcopy")
 
-    clean_up_cbs_output(cbs_output_filename)
+        # create CNA object
+        CNA = DNAcopy.CNA(signal, chr, pos, data_type, id)
 
-#    os.system(gistic_exec + gistic_options + "-seg " + cbs_output_filename)
+        # smooth
+        smooth = robjects.r['smooth.CNA']
+        smoothed = smooth(CNA)
+
+        # segment
+        segment = robjects.r['segment']
+        verbose = robjects.r('verbose=1')
+
+        segmented = segment(smoothed)
+        #segmented = segment(smoothed, verbose)     # todo: why doesn't this work???
+
+        return segmented
+
+    def write_to_file(self, R_obj, filename):
+    # takes an R object and writes it to a file
+    # e.g. takes the output of CBS and writes it to a file for GISTIC to run
+
+       R_obj = robjects.r('print')(R_obj)
+       R_obj = robjects.r('write.table')(R_obj, filename, sep='\t', append='TRUE')
+       # tab delimited
+
+    def clean_up_cbs_output(self, filename):
+        tmp_file = filename + ".tmp"
+
+        cmd = "sed \'s/\"//g\' " + filename             # replace all " with ''
+        cmd += "| cut -f 2- "                           # delete first column of row #s
+    #    cmd += "| sed \'s/ /     /g\' | sed \'1d\'"    # make tab-delimited
+        cmd += ">>" + tmp_file
+
+        os.system(cmd)
+        os.system('mv ' + tmp_file + ' ' + filename)
+
+
+    if __name__ == "__main__":
+
+        # use docopt to parse our args
+        args = docopt(__doc__)
+        print args
+
+        # get out the args and deal with them!
+        cbs_output_filename = args['--cbs-output-file']
+        markerPos_files = args['--marker-file']
+        probe_files = args['--probe-file']
+        sample_name = args['--sample-name']
+
+        if not cbs_output_filename:
+            cbs_output_filename = 'cbs.out'
+
+        if sample_name != None:
+            probes_and_names = zip(probe_files, sample_name)
+            probe_files = probes_and_names + probe_files[len(probes_and_names):]
+
+        print markerPos_files
+        hash = marker_position_hash(markerPos_files)
+
+        for probe_file in probe_files:
+        # this is a concatenation of proble_file_name their corresponding
+        # sample_name pairs with a list of probe_file_names.
+        # [(probe_file_name, sample_name), probe_file_names]
+            if len(probe_file) == 2:
+                filename = probe_file[0]
+                sample_name = probe_file[1]
+                print probe_file
+            elif type(probe_file) == 'str' and len(probe_file) > 2:
+                raise IndexError('''more than two things got zipped together with a
+                probe file and its sample name''')
+            else:
+                filename = probe_file
+                sample_name = probe_file
+                # todo : some regexs or module to get a proper name
+
+            cbs_input = probes_to_chrLocus(filename, hash)
+            cbs = CBS(cbs_input, sample_name)
+            write_to_file(cbs, cbs_output_filename)
+
+        clean_up_cbs_output(cbs_output_filename)
+
+    #    os.system(gistic_exec + gistic_options + "-seg " + cbs_output_filename)
