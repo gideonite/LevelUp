@@ -40,6 +40,12 @@ Options:
 """
 # todo: remove question marks above
 
+# todo: remind the user (hints section?) to set LD_LIBRARY_LIB to whatever they
+# want before
+# running gistic.  This sure gets annoying! Just set it to
+# setenv LD_LIBRARY_LIB ''
+
+
 import sys, os
 import rpy2.robjects as robjects
 import rpy2.robjects.lib.ggplot2 as ggplot2
