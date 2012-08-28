@@ -5,7 +5,7 @@ LevelUp.py  (--marker-file=<marker-file>) ...
             (--probe-file=<probe-file>) ...
             [--sample-name=<sample-name>] ...
             [--cbs-output-file=<cbs-output-file>]
-            [ (--gistic-options <option> ...) ]
+            [ (--gistic-exec=<path> --gistic-options=<options>) ]
             [--help | -h]
 
 Pipeline for getting from MIT Broad's Level_2 data to Level_4 data.  Level_2
@@ -19,8 +19,9 @@ Arguments: CBS
   marker-file           The marker files to be used as reference the columns are
                         something like [probe_name chr position]
 Arguments: GISTIC
-  gistic-parameters     Parameters that are passed directly to the GISTIC
-                        program
+  gistic-exec           The gistic executable
+  gistic-options        Options to get passed directly to the gistic program.
+                        Enclose in quotes ' .  For details see the gistic docs
 
 Options:
   -h --help                     Print this message
@@ -33,7 +34,8 @@ Options:
                                 probe-file and its name form a pair
   --cbs-output-file=OUTPUT      Appends the output of CBS to a file named
                                 OUTPUT.  [default: cbs.out]
-  --gistic-options              These commandline options are passed directly
+  --gistic-exec=<path>          Path to executable GISTIC program
+  --gistic-options=<options>    These commandline options are passed directly
                                 to the gistic program.  If omitted, gistic will
                                 not be run.
 """
@@ -205,6 +207,7 @@ class levelup:
         # use docopt to parse our args
         args = docopt(__doc__)
         print args
+        sys.exit(0)
 
         # get out the args and deal with them!
         cbs_output_filename = args['--cbs-output-file']
@@ -212,7 +215,7 @@ class levelup:
         probe_files = args['--probe-file']
         sample_name = args['--sample-name']
 
-        # should be set by docopt
+        # set by docopt
         #if not cbs_output_filename:
         #    cbs_output_filename = 'cbs.out'
 
@@ -245,6 +248,18 @@ class levelup:
 
         clean_up_cbs_output(cbs_output_filename)
 
-        #./gp_gistic2_from_seg -b $basedir -seg $segfile -mk $markersfile
-        #-refgene $refgenefile -alf $alf -cnv $cnvfile -genegistic 1 -smallmem 1
-        #-broad 1 -brlen 0.5 -conf 0.90
+        gistic = args['--gistic-exec']
+        gistic_args = args['--gistic-options']
+        gistic_cmd = ''
+        if gistic:
+            print '--- running gistic ---'
+
+            if gistic_args == True:
+            # gistic_args is the empty string
+                os.system(gistic)
+                sys.exit(0)
+            else:
+                gistic_cmd = gistic + ' ' + gistic_args
+                print gistic_cmd
+
+        os.system(gistic_cmd)
