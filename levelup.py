@@ -29,7 +29,7 @@ Options:
                                 for the CBS algorithm
                                 NB: order matters.  The first listed name gets
                                 matched to the first probe file, etc.  Probably
-                                best to add them together in pairs, i.e.
+                                best to add them together in pairs, e.g.
                                 "--probe-file SNP-probe-file --sample-name=SNP"
                                 probe-file and its name form a pair
   --cbs-output-file=OUTPUT      Appends the output of CBS to a file named
