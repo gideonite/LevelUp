@@ -202,8 +202,9 @@ class levelup:
     if __name__ == "__main__":
 
         # use docopt to parse our args
-        args = docopt(__doc__)
-        print args
+        #args = docopt(__doc__)
+
+
         sys.exit(0)
 
         # get out the args and deal with them!
