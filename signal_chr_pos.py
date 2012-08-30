@@ -64,11 +64,11 @@ def signal_chr_pos(probesFile_name, hash):
 
     return list
 
-
-
 if __name__ == '__main__':
     marker_files = ['test_data/marker.na30.lst', 'test_data/marker.na31.lst']
     probe_f = 'test_data/SN6.CN.test.data.txt'
+    s_c_p_out = 'signal_chr_pos.out.tmp'
+    # todo : this is bad.  factor it out
 
     print "...loading marker files..."
     hash = marker_position_hash(marker_files)
@@ -79,7 +79,6 @@ if __name__ == '__main__':
     print "done!"
 
     # write this to a file to pass to R
-    s_c_p_out = 'signal_chr_pos.out.tmp'
     s_c_p_out = open(s_c_p_out, 'w')
     for row in s_c_p:
         s_c_p_out.write("%s\n" % '\t'.join(row))
@@ -89,3 +88,6 @@ if __name__ == '__main__':
 
     # todo : remove this file
     s_c_p_out.close()
+
+    # run cbs
+    s_c_p_out
