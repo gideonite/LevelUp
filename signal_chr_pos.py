@@ -4,6 +4,8 @@
 signal_chr_pos_toCBS.py   --m=marker_file ...
                     --p=probe_file ...
                     [--O=output_file ]
+                    [ (--gistic=<gistic-options>) ]
+                    [--help | -h]
 
 Options:
   --O=output_file   [default: cbs.out]
@@ -99,11 +101,11 @@ if __name__ == '__main__':
     hash = marker_position_hash(marker_files)
     print "done!"
 
-
     # -- CBS -- #
     for probe_f in probe_files:
+        sample_name = os.path.basename(probe_f)
 
-        print "...mapping probes to chromosome positions for <" + probe_f + ">" + " ..."
+        print "...mapping probes to chromosome positions for <" + sample_name + ">" + " ..."
         s_c_p = signal_chr_pos(probe_f, hash)
         print "done!"
 
@@ -118,12 +120,12 @@ if __name__ == '__main__':
 
         s_c_p_out.close()
 
-        sample_name = os.path.basename(probe_f)
-
         # run cbs
         cbs_cmd = [SCP_OUT, args['--O'], sample_name]      # args
         cbs_cmd = 'Rscript cbs.r ' + ' '.join(cbs_cmd)
         os.system(cbs_cmd)
 
         # debug : don't remove this file
-        os.system('rm ' + SCP_OUT)
+        #os.system('rm ' + SCP_OUT)
+
+    # -- GISTIC --
