@@ -1,6 +1,18 @@
 #!/usr/bin/python
-# This script takes marker files and probe-signal files and maps out the probes
-# by mapping them to chromosome positions
+
+""" Usage:
+signal_chr_pos_toCBS.py   --m=marker_file ...
+                    --p=probe_file
+                    [--O=output_file ]
+                    [--sample_name=<sample_name>]
+
+Options:
+  --O=output_file   [default: cbs.out]
+
+"""
+
+from docopt import docopt
+import os
 
 def marker_position_hash(markerPos_files):
     # turns a marker file [probe    chromosome   position]
@@ -65,10 +77,16 @@ def signal_chr_pos(probesFile_name, hash):
     return list
 
 if __name__ == '__main__':
-    marker_files = ['test_data/marker.na30.lst', 'test_data/marker.na31.lst']
-    probe_f = 'test_data/SN6.CN.test.data.txt'
-    s_c_p_out = 'signal_chr_pos.out.tmp'
-    # todo : this is bad.  factor it out
+
+    args = docopt(__doc__)
+
+    #marker_files = ['test_data/marker.na30.lst', 'test_data/marker.na31.lst']
+    marker_files = args['--m']
+    #probe_f = 'test_data/SN6.CN.test.data.txt'
+    probe_f = args['--p']
+
+    SCP_OUT = 'signal_chr_pos.out.tmp'
+    ## todo : this is bad.  factor it out
 
     print "...loading marker files..."
     hash = marker_position_hash(marker_files)
@@ -79,8 +97,9 @@ if __name__ == '__main__':
     print "done!"
 
     # write this to a file to pass to R
-    s_c_p_out = open(s_c_p_out, 'w')
+    s_c_p_out = open(SCP_OUT, 'w')
     for row in s_c_p:
+        s_c_p_out.write('signal\tchr\tpos');    # write the column names (a.k.a header)
         s_c_p_out.write("%s\n" % '\t'.join(row))
         # write the row to the file
         # tab-deliminited
@@ -90,4 +109,6 @@ if __name__ == '__main__':
     s_c_p_out.close()
 
     # run cbs
-    s_c_p_out
+    cbs_cmd = [SCP_OUT, args['--O'], args['--sample_name']]      # args
+    cbs_cmd = 'Rscript cbs.r ' + ' '.join(cbs_cmd)
+    os.system(cbs_cmd)
