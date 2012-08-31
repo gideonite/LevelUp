@@ -4,7 +4,7 @@
 signal_chr_pos_toCBS.py   --m=marker_file ...
                     --p=probe_file ...
                     [--O=output_file ]
-                    [ (--gistic=<gistic-options>) ]
+                    [ (--gistic=gistic-options) ]
                     [--help | -h]
 
 Options:
@@ -22,7 +22,7 @@ import os
 
 def marker_position_hash(markerPos_files):
     # turns a marker file [probe    chromosome   position]
-    # into a hash table in memory { probe : [chr, locus] }
+    # into a hash table in memory { probe : [chr#, locus] }
 
     hash = {}
 
@@ -48,7 +48,7 @@ def signal_chr_pos(probesFile_name, hash):
 # go through the signal data,
 # match markers to chr loci,
 # match with the corresponding signal level,
-# and return a list of [signal, chr#, position]
+# and return a list of [signal, chr#, locus]
 
     probesFile = open(probesFile_name)
 
@@ -75,7 +75,7 @@ def signal_chr_pos(probesFile_name, hash):
         except KeyError:
             print "The following probe appears to be unmapped in the marker files: <" + mark + ">"
 
-        map.insert(0, signal)
+        map.insert(0, signal)   # push the signal onto the front of the value (a list [chr#, locus])
         list.append(map)
 
     probesFile.close()
@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     args = docopt(__doc__)
 
-    #print args
+    print args
     #boom
 
     #marker_files = ['test_data/marker.na30.lst', 'test_data/marker.na31.lst']
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     for probe_f in probe_files:
         sample_name = os.path.basename(probe_f)
 
-        print "...mapping probes to chromosome positions for <" + sample_name + ">" + " ..."
+        print "...mapping probe signals to chr positions for <" + sample_name + ">" + " ..."
         s_c_p = signal_chr_pos(probe_f, hash)
         print "done!"
 
@@ -113,7 +113,9 @@ if __name__ == '__main__':
         s_c_p_out = open(SCP_OUT, 'w')
         s_c_p_out.write('signal\tchr\tpos\n');    # write the column names (a.k.a header)
         for row in s_c_p:
+            print row
             s_c_p_out.write("%s\n" % '\t'.join(row))
+            print "%s\n" % '\t'.join(row)
             # write the row to the file
             # tab-deliminited
             # rows separated by new line
@@ -123,9 +125,11 @@ if __name__ == '__main__':
         # run cbs
         cbs_cmd = [SCP_OUT, args['--O'], sample_name]      # args
         cbs_cmd = 'Rscript cbs.r ' + ' '.join(cbs_cmd)
-        os.system(cbs_cmd)
+        print cbs_cmd
+        # debug : don't run cbs
+        #os.system(cbs_cmd)
 
         # debug : don't remove this file
-        #os.system('rm ' + SCP_OUT)
+        os.system('rm ' + SCP_OUT)
 
     # -- GISTIC --

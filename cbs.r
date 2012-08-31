@@ -38,6 +38,5 @@ cat("done!\n");
 # append to end of file
 cat("CBS is writing results to: ", output_f, '\n');
 
-cat('file exists?', file.exists(output_f), '\n');
 write.table(segment.smoothed.CNA.object$output, output_f,
 append=TRUE, col.names=!file.exists(output_f), row.names=FALSE, eol='\n', sep='\t');
