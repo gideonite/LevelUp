@@ -98,8 +98,8 @@ if __name__ == '__main__':
 
     # write this to a file to pass to R
     s_c_p_out = open(SCP_OUT, 'w')
+    s_c_p_out.write('signal\tchr\tpos\n');    # write the column names (a.k.a header)
     for row in s_c_p:
-        s_c_p_out.write('signal\tchr\tpos');    # write the column names (a.k.a header)
         s_c_p_out.write("%s\n" % '\t'.join(row))
         # write the row to the file
         # tab-deliminited

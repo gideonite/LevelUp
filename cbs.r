@@ -26,7 +26,7 @@ CNA.object <- CNA(as.numeric(input$signal),
 
 cat("...CBS is smoothing the probe level data...\n");
 smoothed.CNA.object <- smooth.CNA(CNA.object);
-print("done!");
+cat("done!\n");
 
 cat("..CBS is segmenting...\n");
 segment.smoothed.CNA.object <- segment(smoothed.CNA.object, verbose=1);
