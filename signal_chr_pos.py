@@ -105,10 +105,12 @@ if __name__ == '__main__':
         # tab-deliminited
         # rows separated by new line
 
-    # todo : remove this file
     s_c_p_out.close()
 
     # run cbs
     cbs_cmd = [SCP_OUT, args['--O'], args['--sample_name']]      # args
     cbs_cmd = 'Rscript cbs.r ' + ' '.join(cbs_cmd)
     os.system(cbs_cmd)
+
+    # debug : don't remove this file
+    os.system('rm ' + SCP_OUT)
