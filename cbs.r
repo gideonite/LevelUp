@@ -28,7 +28,7 @@ cat("...CBS is smoothing the probe level data...\n");
 smoothed.CNA.object <- smooth.CNA(CNA.object);
 cat("done!\n");
 
-cat("..CBS is segmenting...\n");
+cat("...CBS is segmenting...\n");
 segment.smoothed.CNA.object <- segment(smoothed.CNA.object, verbose=1);
 cat("done!\n");
 
@@ -37,5 +37,7 @@ cat("done!\n");
 # don't print the row names
 # append to end of file
 cat("CBS is writing results to: ", output_f, '\n');
+
+cat('file exists?', file.exists(output_f), '\n');
 write.table(segment.smoothed.CNA.object$output, output_f,
-append=TRUE, row.names=FALSE, eol='\n', sep='\t');
+append=TRUE, col.names=!file.exists(output_f), row.names=FALSE, eol='\n', sep='\t');
