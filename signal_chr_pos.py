@@ -19,6 +19,8 @@ Options:
 
 from docopt import docopt
 import os
+import sys
+import csv
 
 def marker_position_hash(markerPos_files):
     # turns a marker file [probe    chromosome   position]
@@ -44,40 +46,44 @@ def marker_position_hash(markerPos_files):
     return hash
 
 
-def signal_chr_pos(probesFile_name, hash):
+def signal_chr_pos(probes_f, hash):
 # go through the signal data,
 # match markers to chr loci,
 # match with the corresponding signal level,
 # and return a list of [signal, chr#, locus]
 
-    probesFile = open(probesFile_name)
+    list, name, unmapped = [], '', []
+    probes_f_open = open(probes_f)
+    probe_csv = csv.reader(probes_f_open, delimiter='\t')
+    line = probe_csv.next()
+    while(line):
+        if (line[0] == 'Hybridization REF'):
+            # todo : return this name somehow
+            name = line[1]
+        elif (line[0] == 'CompositeElement REF'):
+            try:
+                assert(line[1] == "normalizedLog2Ratio" or line[1] == "Signal")
+            except AssertionError:
+                print '''It appears that your data file does not have a proper \
+                signal column.  Needs to be one of (Signal, \
+                normalizedLog2Ratio)'''
+                # debug:
+                # print f[0], f[1], f[2]
+                exit(0)
 
-    f = probesFile.readlines()
+        else:
+            try:
+                mark, signal = line[0], line[1]
+                chr_loc = hash[mark]
+                list.append([signal] + chr_loc)
+            except KeyError:
+                unmapped.append("<" + mark + ">")
+                sys.exit(0)
 
-    list = []
+        line = probe_csv.next()
 
-    if (f[1].find('Signal') == -1):
-        print f[0]
-        print f[1]
-        print f[2]
-        print "It appears that your data file does not have a Signal Column"
-
-    # *** ignore the first two lines of the probe file ***
-    # they are usually column names and whatnot
-    for line in f[2:]:
-        line = line.split('\t')
-
-        mark = line[0]
-        signal = line[1].replace('\n', '')
-
-        try:
-            chr_loc = hash[mark]
-        except KeyError:
-            print "The following probe appears to be unchr_locped in the marker files: <" + mark + ">"
-
-        list.append([signal] + chr_loc)
-
-    probesFile.close()
+    probes_f_open.close()
+    print "The following probes appears to be unmapped in the marker files: " + " ".join(unmapped)
 
     return list
 

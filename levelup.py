@@ -112,10 +112,12 @@ class levelup:
             mark = line[0]
             signal = line[1].replace('\n', '')
 
+            unmapped = []
             try:
                 map = hash[mark]
             except KeyError:
-                print "The following probe appears to be unmapped in the marker files: <" + mark + ">"
+                unmapped.append("<" + mark + ">")
+            print "The following probe appears to be unmapped in the marker files: <" + mark + ">"
 
             map.insert(0, signal)
             list.append(map)
