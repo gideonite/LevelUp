@@ -71,12 +71,11 @@ def signal_chr_pos(probesFile_name, hash):
         signal = line[1].replace('\n', '')
 
         try:
-            map = hash[mark]
+            chr_loc = hash[mark]
         except KeyError:
-            print "The following probe appears to be unmapped in the marker files: <" + mark + ">"
+            print "The following probe appears to be unchr_locped in the marker files: <" + mark + ">"
 
-        map.insert(0, signal)   # push the signal onto the front of the value (a list [chr#, locus])
-        list.append(map)
+        list.append([signal] + chr_loc)
 
     probesFile.close()
 
@@ -86,7 +85,7 @@ if __name__ == '__main__':
 
     args = docopt(__doc__)
 
-    print args
+    #print args
     #boom
 
     #marker_files = ['test_data/marker.na30.lst', 'test_data/marker.na31.lst']
@@ -113,9 +112,7 @@ if __name__ == '__main__':
         s_c_p_out = open(SCP_OUT, 'w')
         s_c_p_out.write('signal\tchr\tpos\n');    # write the column names (a.k.a header)
         for row in s_c_p:
-            print row
             s_c_p_out.write("%s\n" % '\t'.join(row))
-            print "%s\n" % '\t'.join(row)
             # write the row to the file
             # tab-deliminited
             # rows separated by new line
@@ -127,7 +124,7 @@ if __name__ == '__main__':
         cbs_cmd = 'Rscript cbs.r ' + ' '.join(cbs_cmd)
         print cbs_cmd
         # debug : don't run cbs
-        #os.system(cbs_cmd)
+        os.system(cbs_cmd)
 
         # debug : don't remove this file
         os.system('rm ' + SCP_OUT)
