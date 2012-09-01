@@ -55,35 +55,26 @@ def signal_chr_pos(probes_f, hash):
     list, name, unmapped = [], '', []
     probes_f_open = open(probes_f)
     probe_csv = csv.reader(probes_f_open, delimiter='\t')
-    line = probe_csv.next()
-    while(line):
+    for line in probe_csv:
         if (line[0] == 'Hybridization REF'):
             # todo : return this name somehow
             name = line[1]
         elif (line[0] == 'CompositeElement REF'):
-            try:
-                assert(line[1] == "normalizedLog2Ratio" or line[1] == "Signal")
-            except AssertionError:
-                print '''It appears that your data file does not have a proper \
-                signal column.  Needs to be one of (Signal, \
-                normalizedLog2Ratio)'''
-                # debug:
-                # print f[0], f[1], f[2]
-                exit(0)
-
+            assert(line[1] == "normalizedLog2Ratio" or line[1] == "Signal")
+            # debug:
+            # print f[0], f[1], f[2]
         else:
+            mark, signal = line[0], line[1]
             try:
-                mark, signal = line[0], line[1]
                 chr_loc = hash[mark]
                 list.append([signal] + chr_loc)
             except KeyError:
                 unmapped.append("<" + mark + ">")
-                sys.exit(0)
-
-        line = probe_csv.next()
 
     probes_f_open.close()
-    print "The following probes appears to be unmapped in the marker files: " + " ".join(unmapped)
+
+    if (len(unmapped) != 0):
+        print "The following probes appear to be unmapped in the marker files: " + " ".join(unmapped)
 
     return list
 
@@ -128,11 +119,11 @@ if __name__ == '__main__':
         # run cbs
         cbs_cmd = [SCP_OUT, args['--O'], sample_name]      # args
         cbs_cmd = 'Rscript cbs.r ' + ' '.join(cbs_cmd)
-        print cbs_cmd
         # debug : don't run cbs
+        print cbs_cmd
         os.system(cbs_cmd)
 
         # debug : don't remove this file
-        os.system('rm ' + SCP_OUT)
+        #os.system('rm ' + SCP_OUT)
 
     # -- GISTIC --
