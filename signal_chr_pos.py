@@ -17,6 +17,9 @@ Options:
 
 # todo: improve the name of this output file
 
+# for probe mapping files, go here:
+# http://www.broadinstitute.org/igv/book/export/html/36
+
 from docopt import docopt
 import os
 import sys
@@ -75,6 +78,8 @@ def signal_chr_pos(probes_f, hash):
 
     if (len(unmapped) != 0):
         print "The following probes appear to be unmapped in the marker files: " + " ".join(unmapped)
+        print "Total unmapped probes: ", len(unmapped)
+        return
 
     return list
 
@@ -126,4 +131,4 @@ if __name__ == '__main__':
         # debug : don't remove this file
         #os.system('rm ' + SCP_OUT)
 
-    # -- GISTIC --
+    # -- GISTIC -- #
