@@ -62,7 +62,7 @@ def signal_chr_pos(probes_f, hash):
         if (line[0] == 'Hybridization REF'):
             # todo : return this name somehow
             name = line[1]
-        elif (line[0] == 'CompositeElement REF'):
+        elif (line[0] == 'CompositeElement REF' or line[0] == 'Composite Element REF'):
             assert(line[1] == "normalizedLog2Ratio" or line[1] == "Signal")
             # debug:
             # print f[0], f[1], f[2]
