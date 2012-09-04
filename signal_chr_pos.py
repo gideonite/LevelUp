@@ -8,7 +8,10 @@ signal_chr_pos_toCBS.py   --m=marker_file ...
                     [--help | -h]
 
 Options:
-  --O=output_file   [default: cbs.out]
+  --O=output_file                   [default: cbs.out]
+  --gistic=gistic-options           make sure to include single quotes around your gistic
+                                    options.  The output of cbs is automatically added to these
+                                    options.
 
 """
 
@@ -87,8 +90,8 @@ if __name__ == '__main__':
 
     args = docopt(__doc__)
 
-    #print args
-    #boom
+    print args
+    boom
 
     #marker_files = ['test_data/marker.na30.lst', 'test_data/marker.na31.lst']
     marker_files = args['--m']
@@ -129,6 +132,12 @@ if __name__ == '__main__':
         os.system(cbs_cmd)
 
         # debug : don't remove this file
-        #os.system('rm ' + SCP_OUT)
+        os.system('rm ' + SCP_OUT)
 
     # -- GISTIC -- #
+
+    if args['--gistic'] != None:
+        cmd = './lib/gp_gistic2_from_seg' \
+                + ' ' + args['--gistic'] \
+                + ' ' + '-seg ' + args['--O']
+        os.system(cmd)
