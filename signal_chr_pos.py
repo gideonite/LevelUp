@@ -47,6 +47,7 @@ def marker_position_hash(markerPos_files):
             mark = str(line[0]).strip()
             chr = line[1]
             pos = line[2].replace('\n','')
+
             hash[mark] = [chr, pos]
 
     file.close()
@@ -67,6 +68,7 @@ def signal_chr_pos(probes_f, hash):
         if (line[0] == 'Hybridization REF'):
             # todo : return this name somehow
             name = line[1]
+            print "<" + name + ">"
         elif (line[0] == 'CompositeElement REF' or line[0] == 'Composite Element REF'):
             assert(line[1] == "normalizedLog2Ratio" or line[1] == "Signal")
             # debug:
@@ -82,9 +84,18 @@ def signal_chr_pos(probes_f, hash):
     probes_f_open.close()
 
     if (len(unmapped) != 0):
-        print "The following probes appear to be unmapped in the marker files: " + " ".join(unmapped)
+        if len(unmapped) < 10:
+            print "The following probes appear to be unmapped in the marker files: " + " ".join(unmapped)
         print "Total unmapped probes: ", len(unmapped)
-        return
+
+        while True:
+            yn = raw_input("Would you like to continue anyway?(y/n) ")
+            if (yn == 'n'):
+                sys.exit(1)
+            elif (yn != 'y'):
+                yn = raw_input("Would you like to continue anyway?(y/n) ")
+            else:
+                break
 
     return (name, list)
 
@@ -110,7 +121,8 @@ if __name__ == '__main__':
     # -- CBS -- #
     for probe_f in probe_files:
 
-        print "...mapping probe signals to chr positions for <" + sample_name + ">" + " ..."
+        sys.stdout.write("...mapping probe signals to chr positions for: ")     # hack, no newline character at end
+
         s_c_p = signal_chr_pos(probe_f, hash)
         sample_name, scp_list = s_c_p[0], s_c_p[1]
         print "done!"
