@@ -22,6 +22,7 @@ Options:
 
 # for probe mapping files, go here:
 # http://www.broadinstitute.org/igv/book/export/html/36
+# agilentCgh1x1m.txt
 
 from docopt import docopt
 import os
@@ -56,7 +57,8 @@ def signal_chr_pos(probes_f, hash):
 # go through the signal data,
 # match markers to chr loci,
 # match with the corresponding signal level,
-# and return a list of [signal, chr#, locus]
+# and return the name of the sample
+# and a list of [signal, chr#, locus]
 
     list, name, unmapped = [], '', []
     probes_f_open = open(probes_f)
@@ -84,14 +86,14 @@ def signal_chr_pos(probes_f, hash):
         print "Total unmapped probes: ", len(unmapped)
         return
 
-    return list
+    return (name, list)
 
-if __name__ == '__main__':
+if __nagilentCgh1x1m.txtame__ == '__main__':
 
     args = docopt(__doc__)
 
-    print args
-    boom
+    #print args
+    #boom
 
     #marker_files = ['test_data/marker.na30.lst', 'test_data/marker.na31.lst']
     marker_files = args['--m']
@@ -107,16 +109,16 @@ if __name__ == '__main__':
 
     # -- CBS -- #
     for probe_f in probe_files:
-        sample_name = os.path.basename(probe_f)
 
         print "...mapping probe signals to chr positions for <" + sample_name + ">" + " ..."
         s_c_p = signal_chr_pos(probe_f, hash)
+        sample_name, scp_list = s_c_p[0], s_c_p[1]
         print "done!"
 
         # write this to a file to pass to R
         s_c_p_out = open(SCP_OUT, 'w')
         s_c_p_out.write('signal\tchr\tpos\n');    # write the column names (a.k.a header)
-        for row in s_c_p:
+        for row in scp_list:
             s_c_p_out.write("%s\n" % '\t'.join(row))
             # write the row to the file
             # tab-deliminited
