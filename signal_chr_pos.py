@@ -88,7 +88,7 @@ def signal_chr_pos(probes_f, hash):
 
     return (name, list)
 
-if __nagilentCgh1x1m.txtame__ == '__main__':
+if __name__ == '__main__':
 
     args = docopt(__doc__)
 
